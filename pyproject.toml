@@ -1,0 +1,51 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "SPECS"
+version = "0.1.0"
+description = "SPECulative Decoding with Soft Rejection"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+keywords = ["nlp", "deep learning", "speculative decoding", "process reward model"]
+authors = [
+    {name = "Mert Cemri and Rishabh Tiwari"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "accelerate",
+    "datasets",
+    "huggingface_hub",
+    "latex2sympy2==1.9.1",
+    "numpy",
+    "openai",
+    "sympy",
+    "torch",
+    "transformers>=4.47.0",
+    "tqdm",
+    "vllm",
+    "wandb",
+    "word2number",
+]
+
+[project.optional-dependencies]
+quality = ["ruff", "isort"]
+tests = ["pytest"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sal"]
