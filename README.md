@@ -1,4 +1,4 @@
-# SPECS: SPECulative Decoding with Soft Rejection
+# SPECS: SPECulative test time Scaling
 
 ## Setup
 
