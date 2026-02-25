@@ -199,6 +199,8 @@ def main():
 
     if "amc" in config.dataset_name:
         dataset = dataset.map(get_success_amc, batched=True, batch_size=25, fn_kwargs={"config": config}, features=success_features, load_from_cache_file=False)
+    elif "gpqa" in config.dataset_name:
+        dataset = dataset.map(get_success_gpqa, batched=True, batch_size=25, fn_kwargs={"config": config}, features=success_features, load_from_cache_file=False)
     else:
         dataset = dataset.map(get_success, batched=True, batch_size=25, fn_kwargs={"config": config}, features=success_features, load_from_cache_file=False)
     success_results = dataset['success']

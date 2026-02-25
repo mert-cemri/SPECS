@@ -23,15 +23,15 @@ from sal.utils.hub import get_dataset_revisions
 
 @dataclass
 class Config:
-    approach: Literal["speculative_beam_search"] = "speculative_beam_search"
+    approach: Literal["specalign_rejection", "speculative_beam_search"] = "specalign_rejection"
     model_path: str = "Qwen/Qwen2.5-Math-7B-Instruct"
-    model_ip_address: str = "http://localhost:12340/v1"
+    model_ip_address: str = "http://localhost:12549/v1"
     draft_model_path: str = "Qwen/Qwen2.5-Math-1.5B-Instruct"
-    draft_model_ip_address: str = "http://localhost:12340/v1"
+    draft_model_ip_address: str = "http://localhost:12549/v1"
     target_model_path: str = "Qwen/Qwen2.5-Math-7B-Instruct"
-    target_model_ip_address: str = "http://localhost:12341/v1"
+    target_model_ip_address: str = "http://localhost:12545/v1"
     prm_path: str = "Skywork/Skywork-o1-Open-PRM-Qwen-2.5-7B"
-    prm_ip_address: str = "http://localhost:12342/v1"
+    prm_ip_address: str = "http://localhost:12550/v1"
     gpu_memory_utilization: float = (
         0.95  # vllm is allocated 0.5 of GPU memory, the PRM uses the rest
     )
@@ -50,14 +50,9 @@ class Config:
     dataset_start: int = None
     dataset_end: int = None
     num_samples: int = None
-    temperature: float = 1
     logname: str = "unnamed"
 
     prob_use_draft_model: float = 1
-
-    sample: bool = True
-    sample_final_pred: bool = True
-    speculative: bool = True
 
     inspect_dataset: bool = False
 
@@ -96,27 +91,24 @@ class Config:
     sort_completed: bool = False
 
     def __post_init__(self):
-        if self.approach == "beam_search":
-            # TODO: implemented a batched version
+        if self.approach == "speculative_beam_search":
             if self.search_batch_size != 1:
-                raise ValueError("search_batch_size should be 1 for beam_search")
+                raise ValueError("search_batch_size should be 1 for speculative_beam_search")
 
         # Setting up push to hub dataset
         if self.push_to_hub:
             model_name = self.model_path.split("/")[-1]
             if self.hub_dataset_id is None:
-                # Set default based on model name. We prepend the username for compatibility with the repo checks below.
                 self.hub_dataset_id = get_full_repo_name(
                     f"{model_name}-{self.approach}-prm-completions"
                 )
             revisions = get_dataset_revisions(self.hub_dataset_id)
 
-            if self.approach == "beam_search" or self.approach == "dvts":
-                self.revision = f"{self.dataset_name.replace('/', '_')}--T-{self.temperature}--top_p-{self.top_p}--n-{self.n}--m-{self.beam_width}--iters-{self.num_iterations}--look-{self.lookahead}--seed-{self.seed}--agg_strategy--{self.agg_strategy}"
-            elif self.approach == "best_of_n":
-                self.revision = f"{self.dataset_name.replace('/', '_')}--T-{self.temperature}--top_p-{self.top_p}--n-{self.n}--seed-{self.seed}--agg_strategy-{self.agg_strategy}"
-            else:
-                raise ValueError(f"Unknown approach {self.approach}")
+            self.revision = (
+                f"{self.dataset_name.replace('/', '_')}--T-{self.temperature}--top_p-{self.top_p}"
+                f"--n-{self.n}--m-{self.beam_width}--iters-{self.num_iterations}"
+                f"--look-{self.lookahead}--seed-{self.seed}--agg_strategy--{self.agg_strategy}"
+            )
             if self.dataset_start is not None and self.dataset_end is not None:
                 self.revision = (
                     f"{self.revision}--chunk-{self.dataset_start}_{self.dataset_end}"
@@ -124,5 +116,4 @@ class Config:
 
             # Early exit if the revision on the Hub already exists
             if not self.overwrite_hub_revision and self.revision in revisions:
-                # logger.info(f"Revision {revision} already exists on the Hub. Exiting.")
                 exit()

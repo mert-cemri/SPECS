@@ -1,11 +1,10 @@
 #!/bin/bash
+set -e
 
-pip install -e .
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Install the skywork_o1_prm_inference package
-cd external/skywork_o1_prm_inference
-pip install -e .
+pip install -e "$SCRIPT_DIR"
 
-# Install the qwen25_math_evaluation package
-cd ../qwen25_math_evaluation
-pip install -e .
+pip install -e "$SCRIPT_DIR/external/skywork_o1_prm_inference"
+
+pip install -e "$SCRIPT_DIR/external/qwen25_math_evaluation"
